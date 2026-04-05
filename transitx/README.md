@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚉 TransitX – Mumbai's Smart QR Transit System
 
-## Getting Started
+**TransitX** is a high-performance full-stack web application designed to modernize Mumbai’s local train ticketing experience. Built for the modern commuter, it allows users to generate secure, encrypted QR tickets with real-time balance management and a premium "Digital Pass" interface.
 
-First, run the development server:
+![TransitX Dashboard Preview](https://via.placeholder.com/800x450/09090b/f2a238?text=TransitX+Secure+Ticketing+System)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+-   **Instant QR Generation:** Encrypted transit passes generated in milliseconds using a custom station-to-station routing logic.
+-   **Dynamic Wallet System:** Real-time balance tracking and automated fare deduction based on journey distance.
+-   **Holographic Ticket UI:** A premium, animated horizontal transit pass featuring "Scanning Laser" effects and security timestamps.
+-   **Journey History:** A dedicated slide-over panel to track active and expired tickets.
+-   **Security First:** JWT-based authentication with protected API routes and secure Prisma database integration.
+-   **Dark Mode Optimized:** Designed specifically for high-DPI displays (like the MacBook M4) with a sleek Zinc & Amber aesthetic.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+-   **Frontend:** [Next.js 14](https://nextjs.org/) (App Router), [Tailwind CSS](https://tailwindcss.com/), [Framer Motion](https://www.framer.com/motion/)
+-   **Backend:** Next.js Serverless Functions, [JWT](https://jwt.io/) for Auth
+-   **Database:** [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/)
+-   **Icons:** [Lucide React](https://lucide.dev/)
 
-## Learn More
+## 🛠️ Installation & Setup
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Clone the repository**
+   ```bash
+   git clone [https://github.com/sohamkadam001/Transit-X.git](https://github.com/sohamkadam001/Transit-X.git)
+   cd Transit-X
