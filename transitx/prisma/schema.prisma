@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Station {
+  id             String       @id @default(uuid())
+  name           String  @unique
+  connectionfrom Connection[] @relation("ConnectionFrom")
+  connectionto   Connection[] @relation("ConnectionTo")
+}
+
+model Connection {
+  id       String @id @default(uuid())
+  fromId   String
+  toId     String
+  distance Int
+
+  from Station @relation("ConnectionFrom", fields: [fromId], references: [id])
+  to   Station @relation("ConnectionTo", fields: [toId], references: [id])
+}
+
+model Ticket {
+  id        String   @id @default(uuid())
+  userId    String
+  from      String
+  to        String
+  fare      Int
+  qrcode    String
+  ExpiresAt DateTime
+  CreatedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id    String @id @default(uuid())
+  email String @unique
+  username String @unique
+  password String
+
+  balance      Balance?
+  tickets      Ticket[]
+  transactions Transaction[]
+}
+
+model Balance {
+  id     String @id @default(uuid())
+  userId String @unique
+  amount Int
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}

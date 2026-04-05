@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --preview-hover-bg: #f1f5f9; /* slate-100 */
+  }
+  .dark {
+    --preview-hover-bg: #27272a; /* zinc-800 */
+  }
+}
