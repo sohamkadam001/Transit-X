@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { getuserId } from "../lib/auth"; // Ensure this helper exists
+import { getuserId } from "../lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {

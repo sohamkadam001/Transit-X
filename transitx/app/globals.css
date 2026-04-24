@@ -10,3 +10,6 @@
     --preview-hover-bg: #27272a; /* zinc-800 */
   }
 }
+html {
+  scroll-behavior: smooth;
+}

@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     try {
         const userId = getuserId(req)
         const { from, to } = await req.json()
-        if(typeof userId !== "string"){
+        if (typeof userId !== "string") {
             return Response.json({ msg: "Unauthorized" }, { status: 401 });
         }
         if (!from || !to) {
@@ -30,10 +30,7 @@ export async function POST(req: Request) {
         if (!fromStation || !toStation) {
             return Response.json({ msg: "Station not found" }, { status: 404 })
         }
-
         const connections = await prisma.connection.findMany()
-
-
         const graph: Record<string, { to: string; distance: number }[]> = {}
 
         connections.forEach((c) => {
@@ -44,8 +41,6 @@ export async function POST(req: Request) {
                 distance: c.distance
             })
         })
-
-
         function findDistance(start: string, end: string) {
             const queue = [{ node: start, distance: 0 }]
             const visited = new Set<string>()
@@ -72,7 +67,6 @@ export async function POST(req: Request) {
 
             return null
         }
-
         const distance = findDistance(fromStation.id, toStation.id)
 
         if (!distance) {
@@ -80,8 +74,6 @@ export async function POST(req: Request) {
         }
 
         const fare = calculateFare(distance)
-
-
         const ticket = await prisma.$transaction(async (tx) => {
             const balance = await tx.balance.findUnique({
                 where: { userId }
@@ -90,8 +82,6 @@ export async function POST(req: Request) {
             if (!balance || balance.amount < fare) {
                 throw new Error("Insufficient balance")
             }
-
-
             await tx.balance.update({
                 where: { userId },
                 data: {
@@ -100,8 +90,6 @@ export async function POST(req: Request) {
                     }
                 }
             })
-
-
             const qrData = `${userId}-${from}-${to}-${Date.now()}`
 
             const ticket = await tx.ticket.create({
@@ -114,17 +102,14 @@ export async function POST(req: Request) {
                     ExpiresAt: new Date(Date.now() + 86400000)
                 }
             })
-
             return ticket
         })
-
         return Response.json({
             msg: "Ticket created successfully",
             distance,
             fare,
             ticket
         })
-
     } catch (err) {
         return Response.json(
             {
