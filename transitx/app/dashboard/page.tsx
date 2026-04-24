@@ -6,28 +6,56 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   TrainFront, MapPin, Wallet, Zap, QrCode, LogOut,
   CircleUserRound, Clock3, ArrowRight, Loader2,
-  LayoutDashboard, History, Settings, CreditCard, Search, Ticket
+  LayoutDashboard, History, Settings, CreditCard, Search, Ticket,
+  ArrowLeftRight, MoveRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-const ALL_STATIONS = [
+// 👉 1. THE GEO ARRAY (Do NOT sort this! Used for distance math)
+const ALL_STATIONS_GEO = [
+  // CENTRAL
   "CSMT", "Masjid", "Sandhurst Road", "Byculla", "Chinchpokli", "Currey Road", "Parel", "Dadar", "Matunga", "Sion", "Kurla", "Vidyavihar", "Ghatkopar", "Vikhroli", "Kanjurmarg", "Bhandup", "Nahur", "Mulund", "Thane", "Kalwa", "Mumbra", "Diva", "Dombivli", "Kalyan",
+  // WESTERN
   "Churchgate", "Marine Lines", "Charni Road", "Grant Road", "Mumbai Central", "Mahalaxmi", "Lower Parel", "Matunga Road", "Mahim", "Bandra", "Khar Road", "Santacruz", "Vile Parle", "Andheri", "Jogeshwari", "Goregaon", "Malad", "Kandivali", "Borivali", "Dahisar", "Mira Road", "Bhayandar", "Naigaon", "Vasai Road", "Nalasopara", "Virar",
+  // HARBOUR
   "Panvel", "Khandeshwar", "Mansarovar", "Kharghar", "Belapur CBD", "Seawoods", "Nerul", "Juinagar", "Sanpada", "Vashi", "Mankhurd", "Govandi", "Chembur", "Tilak Nagar", "Chunabhatti"
-].sort();
+];
+
+// 👉 2. THE SORTED ARRAY (Used ONLY for the dropdown menus)
+const ALL_STATIONS_SORTED = [...ALL_STATIONS_GEO].sort();
 
 export default function DashboardPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('book');
   const [balance, setBalance] = useState<number | null>(null);
+  
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [journeyType, setJourneyType] = useState("Single"); 
+  
   const [isLoading, setIsLoading] = useState(false);
   const [ticketData, setTicketData] = useState<any>(null);
   const [userName, setUserName] = useState("Loading...");
   const [pastTickets, setPastTickets] = useState([]);
   const [isFetchingTickets, setIsFetchingTickets] = useState(false);
+
+  // 👉 3. LIVE FARE CALCULATION LOGIC
+  const calculateFare = (distance: number) => {
+    if (distance === 0) return 0;
+    if (distance <= 5) return 10;
+    if (distance <= 10) return 20;
+    if (distance <= 20) return 30;
+    return 50;
+  };
+
+  // We use the GEO array here to get the actual physical distance
+  const distance = (origin && destination) 
+    ? Math.abs(ALL_STATIONS_GEO.indexOf(origin) - ALL_STATIONS_GEO.indexOf(destination)) 
+    : 0;
+    
+  const baseFare = calculateFare(distance);
+  const liveFare = journeyType === "Return" ? baseFare * 2 : baseFare;
 
   useEffect(() => {
     if (activeTab === 'tickets') {
@@ -84,7 +112,8 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/ticket", {
         method: "POST",
-        body: JSON.stringify({ from: origin, to: destination }),
+        // Pass the liveFare to backend so we don't have to recalculate it there if we trust it (or backend recalculates it to be secure)
+        body: JSON.stringify({ from: origin, to: destination, type: journeyType, fare: liveFare }),
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -93,7 +122,7 @@ export default function DashboardPage() {
       const data = await res.json();
       if (res.ok) {
         setTicketData(data);
-        if (balance !== null) setBalance(prev => prev! - data.fare);
+        if (balance !== null) setBalance(prev => prev! - liveFare);
       } else {
         alert(data.msg || "Booking failed");
       }
@@ -127,6 +156,7 @@ export default function DashboardPage() {
           <LogOut size={18} /> Sign Out
         </button>
       </aside>
+      
       <main className="ml-[280px] flex-grow p-12">
         <header className="flex justify-between items-end mb-12">
           <div>
@@ -145,24 +175,75 @@ export default function DashboardPage() {
         </header>
 
         <div className="grid grid-cols-[1.4fr_1fr] gap-12 items-start">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-zinc-900 p-10 rounded-[40px] border border-gray-100 dark:border-zinc-800 shadow-2xl shadow-black/5 space-y-10">
-            <div className="flex items-center gap-3">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-zinc-900 p-10 rounded-[40px] border border-gray-100 dark:border-zinc-800 shadow-2xl shadow-black/5 space-y-8">
+            <div className="flex items-center gap-3 mb-2">
               <Zap className="w-6 h-6 text-amber-500" fill="currentColor" />
               <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Quick Book</h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 relative">
-              <StationSelect label="From Station" value={origin} onChange={setOrigin} stations={ALL_STATIONS} />
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
+            <div className="grid grid-cols-1 gap-6 relative">
+              <StationSelect label="From Station" value={origin} onChange={setOrigin} stations={ALL_STATIONS_SORTED} />
+              
+              <div className="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 z-10 hidden md:block">
                 <div className="p-3 bg-white dark:bg-zinc-800 rounded-full border border-gray-100 dark:border-zinc-700 shadow-md">
                   <ArrowRight className="w-4 h-4 text-amber-500" />
                 </div>
               </div>
-              <StationSelect label="To Station" value={destination} onChange={setDestination} stations={ALL_STATIONS} />
+
+              <StationSelect label="To Station" value={destination} onChange={setDestination} stations={ALL_STATIONS_SORTED} />
+
+              {/* Journey Type Selector */}
+              <div>
+                <label className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 ml-2 block mb-3">Journey Type</label>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setJourneyType("Single")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm transition-all ${
+                      journeyType === "Single" 
+                        ? "bg-[#f2a238] text-white shadow-lg shadow-amber-500/20" 
+                        : "bg-[#f8f9fc] text-gray-400 dark:bg-zinc-950 dark:text-gray-500 border border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <MoveRight className="w-4 h-4" />
+                    Single
+                  </button>
+                  <button
+                    onClick={() => setJourneyType("Return")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm transition-all ${
+                      journeyType === "Return" 
+                        ? "bg-[#f2a238] text-white shadow-lg shadow-amber-500/20" 
+                        : "bg-[#f8f9fc] text-gray-400 dark:bg-zinc-950 dark:text-gray-500 border border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <ArrowLeftRight className="w-4 h-4" />
+                    Return
+                  </button>
+                </div>
+              </div>
+
+              {/* 👉 4. THE LIVE FARE UI BOX */}
+              <AnimatePresence>
+                {(origin && destination && origin !== destination) && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-500/10 p-5 rounded-2xl border border-amber-100 dark:border-amber-500/20">
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-500">Calculated Fare</span>
+                      <span className="text-2xl font-black text-amber-600 dark:text-amber-500">
+                        ₹{liveFare}.00
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
             </div>
 
             <button
-              disabled={isLoading || !origin || !destination}
+              disabled={isLoading || !origin || !destination || origin === destination}
               onClick={handleBookTicket}
               className="w-full bg-[#f2a238] hover:bg-[#e08f20] disabled:opacity-50 text-white font-bold py-5 rounded-2xl shadow-lg shadow-amber-500/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
             >
@@ -182,6 +263,7 @@ export default function DashboardPage() {
           </AnimatePresence>
         </div>
 
+        {/* ... MY TICKETS OVERLAY ... */}
         <AnimatePresence>
           {activeTab === 'tickets' && (
             <motion.div
@@ -250,7 +332,7 @@ export default function DashboardPage() {
 
                             <div className="px-4 flex flex-col items-center">
                               <div className="w-8 h-[2px] bg-gray-100 dark:bg-zinc-800 mb-1"></div>
-                              <ArrowRight className="w-4 h-4 text-amber-500" />
+                              {t.type === "Return" ? <ArrowLeftRight className="w-4 h-4 text-amber-500" /> : <ArrowRight className="w-4 h-4 text-amber-500" />}
                             </div>
 
                             <div className="flex-1 text-right">
@@ -262,7 +344,9 @@ export default function DashboardPage() {
                           <div className="pt-5 border-t-2 border-dashed border-gray-100 dark:border-zinc-800 flex justify-between items-end relative z-10">
                             <div>
                               <span className="block text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Travel Class</span>
-                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Standard Commuter</span>
+                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                {t.type === "Return" ? "Return Commuter" : "Standard Commuter"}
+                              </span>
                             </div>
                             <div className="text-right">
                               <span className="block text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] mb-1">Total Paid</span>

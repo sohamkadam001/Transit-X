@@ -77,7 +77,12 @@ export default function TransitPass({ ticketData, origin, destination, userName 
             <div className="flex justify-between items-end px-1">
               <div>
                 <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest">Travel Class</span>
-                <p className="text-[11px] font-bold text-zinc-400">Standard Commuter Pass</p>
+                {/* 👉 THE FIX: Dynamic rendering based on ticket type */}
+                <p className="text-[11px] font-bold text-zinc-400">
+                  {ticketData?.type === "Return" || ticketData?.ticket?.type === "Return" 
+                    ? "Return Commuter Pass" 
+                    : "Single Commuter Pass"}
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-[9px] font-black uppercase text-zinc-600 tracking-widest">Fare Paid</span>
